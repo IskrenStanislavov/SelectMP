@@ -1,10 +1,111 @@
-сега ще можеш ли да вземеш салдо към 01.01.2013, доставки и продажби от 01.01. до 30.06 и да приключваме..
-е, и контрагенти към момента
+Define Structure:
+    -raw data (unparced)
+    -parser
+    -output data (import-ready)
+
+Simulate DataBase Structures (JSON similar)
+OK  * Invoice Delivery 
+OK  * Invoice Sell
+    * Contractors /Partners
+    * Products
+    * Saldo /Start balance
 
 
-_____________________________________
-за други версии на програмата:
+    - Contragents (Dealers+Clients)
+        + Name 
+        + VAT Number
+        + (Address)
 
-когато няма 'номера на контрагента може да се изгенерира' може да се вземе както във генератора на артикулите
-за импорт на салдото в магиса ти трябва само доставна цена, получена по описания начин;
-както и в другите реплици, количество и цена е достатъчно
+
+
+### Selling ###
+        ________
+    1)      0|       1       |    2     |             2                | 4 |    5     |     6      |     7      |     8      |     9      |    10      | 11
+             | Група стоки   | Катал.No |         Асортимент           |ТО%| Прод.цена| Количество |Ст-ст сделка| Ст-ст ДДС  | Обща ст-ст | Дост. ст-ст|
+
+             0 _empty                                    = "    "
+             1 _product__group                           = "Cyrilic Product Group"
+             2 _product__id                              = Pattern: [ "1223", "U 69.3" ]
+             3 _product__name                            = "Cyrilic Product Name"
+             4 _trade_discount                           = "0.00"                                        = % discount
+             5 _product__single_price_SOLD               = "2.03"
+             6 _product__quantity_SOLD                   = "200.00"
+             7 _standart_total_value,no dicounts yet     = PreciseOf( fld_5 * fld_6 )                    = _product_qty * _product__single_price_on_delivery  
+             8 _VAT                                      = 20% * fld_7                                   = (fld7 * VAT - usually 20%, but can vary)
+             9 _Value_TOTAL                              = PreciseOf( fld_7 + _VAT )
+            10 _Value_Delivered                          = Delivery.fld_4 * Selling.fld_6 ( +20%?? )
+            11 _empty                                    = "    "
+        #######
+
+        ________
+    2)  ***** Склад       : СКЛАД СЕЛЕКТ                   ****   US as a seller                          = ___________________SELLER_________________
+        ***** Клиент      : АГП ЗА ПМП АЛМА МЕДИКА ООД     ****   Contractor_Name                         = Contractor_Name
+        ***** Фактура  No :       738 /  Дата : 05.11.2014 ****   Invoice_start_data                      = start_of_invoice_string + invoice_number / Date_string + invoice_date    
+                                   .
+                                   .
+                                   .
+
+    3)      0|                        1                                               |      2     |      3     |      4     |      5     |      6     |7
+             |Общо за:        738 / 05.11.2014                                        |        1.00|       65.75|       13.15|       78.90|       53.33|
+
+             0 _empty                                    = "    "
+             1 _complete_sentence_invoice_               = "Общо за:        738 / 05.11.2014"            = SELL.end_of_invoice_string + invoice_number / invoice_date
+             2 _qty_in_invoice                           = "1.00"
+             3 _price_no_VAT                             = SUM_COLUMN
+             4 _VAT                                      = Pattern: ["-10.20", "0.00", "12.34"]
+             5 _invoice_TOTAL                            = 20% * fld_3
+             6 _delivery_price                           = Delivery.calculatePrice(this.items,this.quantities)
+             7 _empty                                    = "    "
+        #######
+
+### Delivery ###
+        ________
+    1)      0|       1       |    2     |             2                |    4     |    5   |     6      |     7      |    8     |     9      |  10
+             | Група стоки   | Катал.No |          Асортимент          |Цена прид.| Кол-во | Дост.ст-ст | Ст-ст прид.| Ст-ст ДДС| Обща ст-ст |
+
+             0 _empty                                    = "    "
+             1 _product__group                           = "Cyrilic Product Group"
+             2 _product__id                              = Pattern: [ "1223", "U 2.13" ]
+             3 _product__name                            = "Cyrilic Product Name"
+             4 _product__single_price_BOUGHT             = "2.03"
+             5 _product__quantity_BOUGHT                 = "200.00"
+             6 _standart_total_value,no dicounts yet     = PreciseOf( fld_4 * fld_5 )                    = _product_qty * _product__single_price_on_delivery  
+             7 _value_after_discounts                    = (fld_6 -discounts; <Ст-ст прид.> )
+             8 _VAT                                      = 20% * fld_7                                   = (fld7 * VAT - usually 20%, but can vary)
+             9 _Value_TOTAL                              = PreciseOf( fld_7 + _VAT )
+            10 _empty                                    = "    "
+        #######
+
+        ________
+    2)  ***** Склад       : СКЛАД СЕЛЕКТ                   ****   Buyer                                   = ___________________IMPORTER______________
+        ***** Доставчик   : АССА - АЛЕКСАНДЪР ВАНГЕЛОВ ЕТ  ****   Contractor_Name                         = Contractor_Name
+        ***** Фактура No : 0000022358 / 06.01.2014         ****   Invoice_start_data                      = DELIVERY.start_of_invoice_string + invoice_number / invoice_date
+                                .
+                                .
+                                .
+
+    3)      0|                        1                                           |    2   |      3     |      4     |     5    |      6     |7
+             |Общо за: 0000022358 / 06.01.2014                                    |    1.00|      120.83|        0.00|     24.17|      145.00|
+
+             0 _empty                                    = "    "
+             1 _complete_sentence_invoice_               = "Общо за: 0000022358 / 06.01.2014"            = end_of_invoice_string + invoice_number / invoice_date
+             2 _qty_in_invoice                           = "200.00"
+             3 _delivery_price                           = SUM_COLUMN
+             4 _discounts                                = Pattern: ["-10.20", "0.00", "12.34"]
+             5 _value_added                              = 20% * fld_3
+             6 _invoice_TOTAL                            = "80.43"
+             7 _empty                                    = "    "
+        #######
+
+
+### Products ###
+    - Artikuli (Products)
+
+        (fields from Delivery)
+             1 
+             .
+             .
+             .
+             9
+
+
