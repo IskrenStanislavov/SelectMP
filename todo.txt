@@ -17,31 +17,13 @@ Simulate DataBase Structures (JSON similar)
           1 _product__id                                   = [ "2373000008", "2002", "AK18", "U 25.3", "MX5" ]
           2 _product__name
           3 _product__quantity
-          4 _product__price_on_buy
-          5 _product__price_on_sell_VAT_incl
-          6 _product__price_on_sell_VAT_excl
+          4 _product__price_BOUGHT
+          5 _product__price_SOLD__VAT_incl
+          6 _product__price_SOLD__VAT_excl
           7 _value__on_buy
           8 _value__on_sell_VAT_incl
           9 _value__on_sell_VAT_excl
          10 _empty                                    = "    "
-
-### Products ###
-  1)  fields from Saldo:
-          2 _product__id                                   = [ "2373000008", "2002", "AK18", "U 25.3", "MX5" ]
-
-  2)  fields from Selling:
-          1 _product__group
-          2 _product__id                                   = [ "2373000008", "2002", "AK18", "U 25.3", "MX5" ]
-          3 _product__name
-          5 _product__single_price_SOLD (no VAT)
-
-  3)  fields from Delivery:
-            1 _product__group                                = "Cyrilic Product Group"
-            2 _product__id                                   = Pattern: [ "1223", "U 2.13" ]
-            3 _product__name                                 = "Cyrilic Product Name"
-            4 _product__single_price_BOUGHT                  = "2.03"
-          5 _product__quantity_BOUGHT                      = "200.00"
-
 
 ### Contractors ###
 
@@ -58,7 +40,6 @@ Simulate DataBase Structures (JSON similar)
              8 _empty                                    = "    "
         #######
 
-
 ### Selling ###
         ________
     1)      0|       1       |    2     |             2                | 4 |    5     |     6      |     7      |     8      |     9      |    10      | 11
@@ -69,12 +50,12 @@ Simulate DataBase Structures (JSON similar)
              2 _product__id                              = Pattern: [ "1223", "U 69.3" ]
              3 _product__name                            = "Cyrilic Product Name"
              4 _trade_discount                           = "0.00"                                        = % discount
-             5 _product__single_price_SOLD               = "2.03"
+             5 _product__price_SOLD__VAT_excl            = "2.03"
              6 _product__quantity_SOLD                   = "200.00"
-             7 _standart_total_value,no dicounts yet     = PreciseOf( fld_5 * fld_6 )                    = _product_qty * _product__single_price_on_delivery  
-             8 _VAT                                      = 20% * fld_7                                   = (fld7 * VAT - usually 20%, but can vary)
-             9 _Value_TOTAL                              = PreciseOf( fld_7 + _VAT )
-            10 _Value_Delivered                          = Delivery.fld_4 * Selling.fld_6 ( +20%?? )
+             7 _ITEM_VAT_Excluded                        = PreciseOf( fld_5 * fld_6 )                    = _product_qty * _product__single_price_on_delivery  
+             8 _ITEM_VAT                                 = 20% * fld_7                                   = (fld7 * VAT - usually 20%, but can vary)
+             9 _ITEM_Value_SELL                          = PreciseOf( fld_7 + _ITEM_VAT )
+            10 _ITEM_Value_Delivered                     = Delivery.fld_4 * Selling.fld_6 ( +20%?? )
             11 _empty                                    = "    "
         #######
 
@@ -91,11 +72,11 @@ Simulate DataBase Structures (JSON similar)
 
              0 _empty                                    = "    "
              1 _complete_sentence_invoice_               = "Общо за:        738 / 05.11.2014"            = SELL.end_of_invoice_string + invoice_number / invoice_date
-             2 _qty_in_invoice                           = "1.00"
-             3 _price_no_VAT                             = SUM_COLUMN
-             4 _VAT                                      = Pattern: ["-10.20", "0.00", "12.34"]
-             5 _invoice_TOTAL                            = 20% * fld_3
-             6 _delivery_price                           = Delivery.calculatePrice(this.items,this.quantities)
+             2 _TOTAL_items_Qty                          = "1.00"
+             3 _TOTAL_VAT_Excluded                       = SUM_COLUMN
+             4 _TOTAL_VAT                                = Pattern: ["-10.20", "0.00", "12.34"]
+             5 _TOTAL_invoice                            = 20% * fld_3
+             6 _TOTAL_delivery_value                     = Delivery.calculatePrice(this.items,this.quantities)
              7 _empty                                    = "    "
         #######
 
@@ -112,8 +93,8 @@ Simulate DataBase Structures (JSON similar)
              5 _product__quantity_BOUGHT                 = "200.00"
              6 _standart_total_value,no dicounts yet     = PreciseOf( fld_4 * fld_5 )                    = _product_qty * _product__single_price_on_delivery  
              7 _value_after_discounts                    = (fld_6 -discounts; <Ст-ст прид.> )
-             8 _VAT                                      = 20% * fld_7                                   = (fld7 * VAT - usually 20%, but can vary)
-             9 _Value_TOTAL                              = PreciseOf( fld_7 + _VAT )
+             8 _ITEM_VAT                                 = 20% * fld_7                                   = (fld7 * VAT - usually 20%, but can vary)
+             9 _ITEM_Value                               = PreciseOf( fld_7 + _ITEM_VAT )
             10 _empty                                    = "    "
         #######
 
@@ -130,23 +111,11 @@ Simulate DataBase Structures (JSON similar)
 
              0 _empty                                    = "    "
              1 _complete_sentence_invoice_               = "Общо за: 0000022358 / 06.01.2014"            = end_of_invoice_string + invoice_number / invoice_date
-             2 _qty_in_invoice                           = "200.00"
-             3 _delivery_price                           = SUM_COLUMN
-             4 _discounts                                = Pattern: ["-10.20", "0.00", "12.34"]
-             5 _value_added                              = 20% * fld_3
-             6 _invoice_TOTAL                            = "80.43"
+             2 _TOTAL_items_Qty                          = "200.00"
+             3 _TOTAL_delivery_value                     = SUM_COLUMN
+             4 _TOTAL_discounts                          = Pattern: ["-10.20", "0.00", "12.34"]
+             5 _TOTAL_VAT                                = 20% * fld_3
+             6 _TOTAL_invoice                            = "80.43"
              7 _empty                                    = "    "
         #######
-
-
-### Products ###
-    - Artikuli (Products)
-
-        (fields from Delivery)
-             1 
-             .
-             .
-             .
-             9
-
 
