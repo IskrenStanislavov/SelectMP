@@ -4,17 +4,43 @@ Define Structure:
     -output data (import-ready)
 
 Simulate DataBase Structures (JSON similar)
-OK  * Invoice Delivery 
-OK  * Invoice Sell
-    * Contractors /Partners
+    * Invoice Delivery 
+    * Invoice Sell
+    * Contractors / Partners (Dealers+Clients)
     * Products
     * Saldo /Start balance
 
+### Saldo ###
+    0|    1     |       2         |    3     |  4    |   5   |   6   |     7      |      8     |      9     |10
+     |Катал. Nо | Артикул         | Колич-во |Ц прид.|П.ц+ДДС|П.ц-ДДС| Ст-ст прид.| Прод.ст+ДДС| Прод.ст-ДДС|
+          0 _empty                                    = "    "
+          1 _product__id                                   = [ "2373000008", "2002", "AK18", "U 25.3", "MX5" ]
+          2 _product__name
+          3 _product__quantity
+          4 _product__price_on_buy
+          5 _product__price_on_sell_VAT_incl
+          6 _product__price_on_sell_VAT_excl
+          7 _value__on_buy
+          8 _value__on_sell_VAT_incl
+          9 _value__on_sell_VAT_excl
+         10 _empty                                    = "    "
 
-    - Contragents (Dealers+Clients)
-        + Name 
-        + VAT Number
-        + (Address)
+### Products ###
+  1)  fields from Saldo:
+          2 _product__id                                   = [ "2373000008", "2002", "AK18", "U 25.3", "MX5" ]
+
+  2)  fields from Selling:
+          1 _product__group
+          2 _product__id                                   = [ "2373000008", "2002", "AK18", "U 25.3", "MX5" ]
+          3 _product__name
+          5 _product__single_price_SOLD (no VAT)
+
+  3)  fields from Delivery:
+            1 _product__group                                = "Cyrilic Product Group"
+            2 _product__id                                   = Pattern: [ "1223", "U 2.13" ]
+            3 _product__name                                 = "Cyrilic Product Name"
+            4 _product__single_price_BOUGHT                  = "2.03"
+          5 _product__quantity_BOUGHT                      = "200.00"
 
 
 ### Contractors ###
@@ -22,14 +48,14 @@ OK  * Invoice Sell
             0|      1   |              2                 |       3       |              4                 |        5        |      6          |         7            |8
              | Код      | Име                            | ЕИК/ЕГН       | Адрес                          | Телефон         | Факс            | e-mail               |
              0 _empty                                    = "    "
-             1 _complete_sentence_invoice_               = "Общо за:        738 / 05.11.2014"            = SELL.end_of_invoice_string + invoice_number / invoice_date
-             2 _name                                     = Cyrillic company name
+             1 _contractor_code                          = integer field
+             2 _name                                     = Cyrillic field
              3 _VAT-UID                                  = BG12345678890 / 1030866890
-             4 _address                                  = Pattern: ["-10.20", "0.00", "12.34"]
+             4 _address                                  = Cyrillic field
              5 _phone                                    = phone number if provided
              6 _fax                                      = fax number if provided
              7 _e-mail                                   = "mail@domain.com"
-             7 _empty                                    = "    "
+             8 _empty                                    = "    "
         #######
 
 
