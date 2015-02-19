@@ -17,6 +17,21 @@ OK  * Invoice Sell
         + (Address)
 
 
+### Contractors ###
+
+            0|      1   |              2                 |       3       |              4                 |        5        |      6          |         7            |8
+             | Код      | Име                            | ЕИК/ЕГН       | Адрес                          | Телефон         | Факс            | e-mail               |
+             0 _empty                                    = "    "
+             1 _complete_sentence_invoice_               = "Общо за:        738 / 05.11.2014"            = SELL.end_of_invoice_string + invoice_number / invoice_date
+             2 _name                                     = Cyrillic company name
+             3 _VAT-UID                                  = BG12345678890 / 1030866890
+             4 _address                                  = Pattern: ["-10.20", "0.00", "12.34"]
+             5 _phone                                    = phone number if provided
+             6 _fax                                      = fax number if provided
+             7 _e-mail                                   = "mail@domain.com"
+             7 _empty                                    = "    "
+        #######
+
 
 ### Selling ###
         ________
