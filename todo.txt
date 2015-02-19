@@ -92,7 +92,7 @@ Simulate DataBase Structures (JSON similar)
              4 _product__single_price_BOUGHT             = "2.03"
              5 _product__quantity_BOUGHT                 = "200.00"
              6 _standart_total_value,no dicounts yet     = PreciseOf( fld_4 * fld_5 )                    = _product_qty * _product__single_price_on_delivery  
-             7 _value_after_discounts                    = (fld_6 -discounts; <Ст-ст прид.> )
+             7 _ITEM_VAT_Excluded                        = (fld_6 -discounts; <Ст-ст прид.> )
              8 _ITEM_VAT                                 = 20% * fld_7                                   = (fld7 * VAT - usually 20%, but can vary)
              9 _ITEM_Value                               = PreciseOf( fld_7 + _ITEM_VAT )
             10 _empty                                    = "    "
