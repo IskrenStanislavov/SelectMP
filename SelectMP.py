@@ -11,6 +11,7 @@ import parse
 
 class SelectMP(object):
     def __init__(self, ini_path="SelectMP.ini"):
+        print ini_path
         self.config = IniParser(ini_path)
 
 
@@ -120,51 +121,39 @@ class SelectMP(object):
         return errors
 
     def main(self):
-        
-        configParser = ConfigParser.ConfigParser()
-        configParser.read(config.ini_path)
-        config.paths.magisDB = configParser.get('magisPath')
-        config.paths.importFiles = configParser.get('import_path')
+        os.chdir(self.config.paths.magisDB)
 
-        parse.ArtKeyGOD.work_path = config.paths.magisDB
-        parse.ContrKeyGOD.work_path = config.paths.magisDB
+        parse.ArtKeyGOD.work_path = self.config.paths.magisDB
+        parse.ArtKeyGOD.file_name = self.config.files.products
 
-        parse.ArtKeyGOD.file_name = configParser.get( 'art_id_file')
-        parse.ContrKeyGOD.file_name = configParser.get( 'contr_id_file')
-        obj = configParser.getint('obj1')
-        yyYearId = configParser.get('yy')
-        dolphine_dealers_file = configParser.get('dealers')
-        print config.paths.importFiles, dolphine_dealers_file
-        data_path = os.path.join(config.paths.magisDB, "data/", str(obj).zfill(8))
-        print data_path
-        os.chdir(config.paths.magisDB)
-        ### files
-        file_dost = configParser.get('file_dost') #'dost_MP.PRN'
-        file_prod = configParser.get('file_prod') #'prod_MP.PRN'
+        parse.ContrKeyGOD.work_path = self.config.paths.magisDB
+        parse.ContrKeyGOD.file_name = self.config.files.contractors
+
+        print self.config.paths.importFiles, self.config.files.dolphine_dealers_file
+        print self.config.paths.magisDataDir
 
         #SALDO
-        if configParser.getint( 'saldo_import_run', 0):
+        if self.config.options.import_saldo:
             saldo = configParser.get( 'saldo') # saldo_MP.txt
             salda, errlog = parse.start_saldo(saldo)
-            parse.make_saldo_replic(salda, data_path, yyYearId)
+            parse.make_saldo_replic(salda, self.config.magisDataDir, self.config.db.yy)
         else:
             salda = []
-        del configParser
-        a_new = config.exportFiles.artikuli
-        c_new = config.exportFiles.kontragenti
-        txt = open(os.path.join(config.paths.importFiles, dolphine_dealers_file)).read()
-        txt = ANSI(txt)
-        contr_key_generator = parse.ContrKeyGOD()
-        contr_key_generator.update(parse.parse_dolphine_dealers(txt))
+        # del configParser
 
-        parsed_dostavki = parse.parse(config.paths.importFiles, file_dost, yyYearId)
-        parsed_prodagbi = parse.parse(config.paths.importFiles, file_prod, yyYearId)
+        # txt = open(self.config.files.dolphine_dealers_file).read()
+        # txt = ANSI(txt)
+        # contr_key_generator = parse.ContrKeyGOD()
+        # contr_key_generator.update(parse.parse_dolphine_dealers(txt))
+
+        parsed_dostavki = parse.parse(self.config.paths.importFiles, self.config.files.file_dost, self.config.db.yy)
+        parsed_prodagbi = parse.parse(self.config.paths.importFiles, self.config.files.file_prod, self.config.db.yy)
         ### артикули и контрагенти
-        art(parsed_dostavki, parsed_prodagbi, os.path.join(config.paths.magisDB, a_new), os.path.join(config.paths.magisDB, c_new), salda)
+        self.art(parsed_dostavki, parsed_prodagbi, self.config.files.export.artikuli, self.config.files.export.kontragenti, salda)
         if __debug__:
             print 'kraj na otdelqneto na articuli i contragenti'
         ### операции
-        errors = make_replic(parsed_dostavki+parsed_prodagbi, data_path, yyYearId)
+        errors = self.make_replic(parsed_dostavki+parsed_prodagbi, self.config.paths.magisDataDir, self.config.db.yy)
         if __debug__:
             print 'kraj na syzdavaneto na repic-files'
         ### imports
@@ -177,4 +166,4 @@ if __name__=='__main__':
     a.test = 5
     assert a.test == 5
 
-    SelectMP().main()
+    SelectMP(os.path.splitext(__file__)[0] +'.ini').main()
