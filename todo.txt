@@ -3,6 +3,23 @@ Define Structure:
     -parser
     -output data (import-ready)
 
+
+Classes:
+    new Object()
+        __init__(self, data, format):
+            self.parse(data, format)
+        parse(self, data, format):
+            ....
+        check_data(self):
+            ....
+        export(self, data, format):
+            if not self.check_data():
+                raise ValidationError(self.messages.validation % self.missing_data_dict)
+            return self.format_string()
+            ....
+
+
+
 Simulate DataBase Structures (JSON similar)
     * Invoice Delivery 
     * Invoice Sell

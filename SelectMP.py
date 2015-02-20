@@ -139,12 +139,11 @@ class SelectMP(object):
             parse.make_saldo_replic(salda, self.config.magisDataDir, self.config.db.yy)
         else:
             salda = []
-        # del configParser
 
-        # txt = open(self.config.files.dolphine_dealers_file).read()
-        # txt = ANSI(txt)
-        # contr_key_generator = parse.ContrKeyGOD()
-        # contr_key_generator.update(parse.parse_dolphine_dealers(txt))
+        txt = open(self.config.files.dolphine_dealers_file).read()
+        txt = ANSI(txt)
+        contr_key_generator = parse.ContrKeyGOD()
+        contr_key_generator.update(parse.parse_dolphine_dealers(txt))
 
         parsed_dostavki = parse.parse(self.config.paths.importFiles, self.config.files.file_dost, self.config.db.yy)
         parsed_prodagbi = parse.parse(self.config.paths.importFiles, self.config.files.file_prod, self.config.db.yy)
