@@ -29,12 +29,13 @@ class IniParser(ConfigParser.ConfigParser):
         self.files.products                 = self.get('art_id_file')
         self.files.saldo                    = self.get('saldo')
         self.files.contractors              = self.get('contr_id_file')
+        self.files.dolphine_dealers_file    = os.path.join(cfg.paths.importFiles, self.get('dealers'))
         self.files.file_dost                = self.get('file_dost') #'dost_MP.PRN'
         self.files.file_prod                = self.get('file_prod') #'prod_MP.PRN'
 
         self.files.export                   = Proxy()
-        self.files.export.artikuli          = 'artikuli-new.txt',
-        self.files.export.kontragenti       = 'contragenti-new.txt'
+        self.files.export.artikuli          = os.path.join(self.paths.magisDB, 'artikuli-new.txt')
+        self.files.export.kontragenti       = os.path.join(self.paths.magisDB, 'contragenti-new.txt')
 
 
         self.db                             = Proxy()
@@ -43,10 +44,6 @@ class IniParser(ConfigParser.ConfigParser):
 
         self.options                        = Proxy()
         self.options.import_saldo           = self.getint("saldo_import_run", 0)
-
-        self.files.export.artikuli          = os.path.join(self.paths.magisDB, 'artikuli-new.txt')
-        self.files.export.kontragenti       = os.path.join(self.paths.magisDB, 'contragenti-new.txt')
-        self.files.dolphine_dealers_file    = os.path.join(cfg.paths.importFiles, self.get('dealers'))
 
         self.errors                         = Proxy()
         self.errors.missingEIK              = "Липсва ЕИК към %s № (%s) от дата:%s; "
