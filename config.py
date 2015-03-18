@@ -1,4 +1,3 @@
-# encoding:cp1251
 from dosutil import ANSI, ANSI2OEM
 import parse
 
@@ -39,5 +38,5 @@ class IniParser(ConfigParser.ConfigParser):
         self.options.import_saldo           = self.getint("SelectMP", "saldo_import_run")
 
         self.errors                         = Proxy()
-        self.errors.missingEIK              = "ÀËÔÒ‚‡ ≈»  Í˙Ï %s π (%s) ÓÚ ‰‡Ú‡:%s; "
+        self.errors.missingEIK              = "–õ–∏–ø—Å–≤–∞ –ï–ò–ö –∫—ä–º %s ‚Ññ (%s) –æ—Ç –¥–∞—Ç–∞:%s; "
         self.errors.timeStamp               = "\n\n!!! Date & time: %s\n"%(datetime.now())

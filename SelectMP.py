@@ -53,10 +53,10 @@ class SelectMP(object):
     def make_replic(self, info, save_path, yyYearId):
         errors = []
         art_key_generator = parse.ArtKeyGOD()
-        rep02 = os.path.join(save_path, "replic02." + yyYearId)#Доставка с фактура
-        rep07 = os.path.join(save_path, "replic07." + yyYearId)#Доставка с касова бележка/друг документ
-        rep08 = os.path.join(save_path, "replic08." + yyYearId)#Касови продажби
-        rep09 = os.path.join(save_path, "replic09." + yyYearId)#Продажба с фактура
+        rep02 = os.path.join(save_path, "replic02." + yyYearId)#Р”РѕСЃС‚Р°РІРєР° СЃ С„Р°РєС‚СѓСЂР°
+        rep07 = os.path.join(save_path, "replic07." + yyYearId)#Р”РѕСЃС‚Р°РІРєР° СЃ РєР°СЃРѕРІР° Р±РµР»РµР¶РєР°/РґСЂСѓРі РґРѕРєСѓРјРµРЅС‚
+        rep08 = os.path.join(save_path, "replic08." + yyYearId)#РљР°СЃРѕРІРё РїСЂРѕРґР°Р¶Р±Рё
+        rep09 = os.path.join(save_path, "replic09." + yyYearId)#РџСЂРѕРґР°Р¶Р±Р° СЃ С„Р°РєС‚СѓСЂР°
         mode='w+'
         f2 = open(rep02, mode)
         f7 = open(rep07, mode)
@@ -68,13 +68,13 @@ class SelectMP(object):
             if group.viddoc == "9-":#kreditno izvestie kym prodagba
                 v_str = "%s~0~%s~%s~%s~%s~\n"
                 group.viddoc = "9"
-                err_kind = "Кредитно известие към продажба"
+                err_kind = "РљСЂРµРґРёС‚РЅРѕ РёР·РІРµСЃС‚РёРµ РєСЉРј РїСЂРѕРґР°Р¶Р±Р°"
             elif group.viddoc in ("8", "9"):#prodagba
                 v_str = "%s~0~%s~%s~-%s~%s~\n"#qty goes down
-                err_kind = "Фактура за Продажба"
+                err_kind = "Р¤Р°РєС‚СѓСЂР° Р·Р° РџСЂРѕРґР°Р¶Р±Р°"
             elif group.viddoc in ("2", "7",):#dostavka
                 v_str = "%s~0~%s~%s~%s~%s~\n"
-                err_kind = "Фактура за Доставка"
+                err_kind = "Р¤Р°РєС‚СѓСЂР° Р·Р° Р”РѕСЃС‚Р°РІРєР°"
                 
             numdoc = group.inner_num
             nomerfaktura = group.fakt_num
@@ -87,25 +87,25 @@ class SelectMP(object):
             for v in group.rows:
                 kolichestwo = v['quantity']
                 ed_cena = v['ed_cena']
-                assert kolichestwo != 0 #може и кредитни и търг. отстъпки
+                assert kolichestwo != 0 #РјРѕР¶Рµ Рё РєСЂРµРґРёС‚РЅРё Рё С‚СЉСЂРі. РѕС‚СЃС‚СЉРїРєРё
                 ed_cena = '%1.15e' % (ed_cena)
                 kolichestwo ='%1.15e' % float(kolichestwo)
                 t1 += v_str % (numdoc, art_key_generator.get_key(v['code']), date_faktura, kolichestwo, ed_cena)
             ###write end of document here
-            if group.viddoc == "2":# доставка с фактура
+            if group.viddoc == "2":# РґРѕСЃС‚Р°РІРєР° СЃ С„Р°РєС‚СѓСЂР°
                 t_vars = (numdoc, group.viddoc, date_faktura, numdoc, date_faktura, nomerfaktura, contragent_id, date_faktura)
             else:
                 t_vars = (numdoc, group.viddoc, date_faktura, nomerfaktura, date_faktura, nomerfaktura, contragent_id, date_faktura)
                 
             t = "%s~%s~%s~%s~%s~%s~_______R________~1~%s~%s~"%t_vars
             assert group.viddoc in "2789"
-            if group.viddoc == "2":#dostavka с фактура
+            if group.viddoc == "2":#dostavka СЃ С„Р°РєС‚СѓСЂР°
                 out = f2
-            elif group.viddoc == "7":#dostavka с документ
+            elif group.viddoc == "7":#dostavka СЃ РґРѕРєСѓРјРµРЅС‚
                 out = f7
-            elif group.viddoc == "9":#prodagba с фактура
+            elif group.viddoc == "9":#prodagba СЃ С„Р°РєС‚СѓСЂР°
                 out = f9
-            elif group.viddoc == "8":#prodagba/касова продажба
+            elif group.viddoc == "8":#prodagba/РєР°СЃРѕРІР° РїСЂРѕРґР°Р¶Р±Р°
                 out = f8
             else:
                 raise Exception("cant format document:%s" % numdoc)
@@ -146,8 +146,6 @@ class SelectMP(object):
             });
             saldo.parse();
             saldo.make_replic()
-        else:
-            salda = []
 
         txt = open(self.config.files.dolphine_dealers_file).read()
         txt = ANSI(txt)
@@ -156,11 +154,11 @@ class SelectMP(object):
 
         parsed_dostavki = parse.parse(self.config.paths.importFiles, self.config.files.file_dost, self.config.db.yy)
         parsed_prodagbi = parse.parse(self.config.paths.importFiles, self.config.files.file_prod, self.config.db.yy)
-        ### артикули и контрагенти
+        ### Р°СЂС‚РёРєСѓР»Рё Рё РєРѕРЅС‚СЂР°РіРµРЅС‚Рё
         self.art(parsed_dostavki, parsed_prodagbi, self.config.files.export.artikuli, self.config.files.export.kontragenti, salda)
         if __debug__:
             print 'kraj na otdelqneto na articuli i contragenti'
-        ### операции
+        ### РѕРїРµСЂР°С†РёРё
         errors = self.make_replic(parsed_dostavki+parsed_prodagbi, self.config.paths.magisDataDir, self.config.db.yy)
         if __debug__:
             print 'kraj na syzdavaneto na repic-files'
