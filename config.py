@@ -1,3 +1,4 @@
+# encoding: utf8
 from dosutil import ANSI, ANSI2OEM
 import parse
 

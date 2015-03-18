@@ -1,3 +1,4 @@
+# encoding: utf8
 class Proxy(dict):
     def __init__(self, data={}):
         self.update(data)

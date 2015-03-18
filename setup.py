@@ -1,3 +1,4 @@
+# encoding: utf8
 # Run the build process by entering 'setup.py py2exe' or
 # 'python setup.py py2exe' in a console prompt.
 

@@ -1,3 +1,4 @@
+# encoding: utf8
 # odict.py
 # An Ordered Dictionary object
 # Copyright (C) 2005 Nicola Larosa, Michael Foord

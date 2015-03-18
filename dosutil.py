@@ -1,4 +1,4 @@
-# encoding: cp1251
+# encoding: utf8
 import string
 import ctypes
 
