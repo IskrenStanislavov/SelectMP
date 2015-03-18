@@ -9,6 +9,8 @@ from config import IniParser
 from proxy import Proxy
 import parse
 
+from saldo import SaldoCollection
+
 class SelectMP(object):
     def __init__(self, ini_path="SelectMP.ini"):
         print ini_path
@@ -134,9 +136,16 @@ class SelectMP(object):
 
         #SALDO
         if self.config.options.import_saldo:
-            saldo = configParser.get( 'saldo') # saldo_MP.txt
-            salda, errlog = parse.start_saldo(saldo)
-            parse.make_saldo_replic(salda, self.config.magisDataDir, self.config.db.yy)
+            # saldo =  # saldo_MP.txt
+            # salda, errlog = parse.start_saldo(saldo)
+            # parse.make_saldo_replic(salda, self.config.magisDataDir, self.config.db.yy)
+            saldo = SaldoCollection({
+                "importFile": configParser.get( 'saldo'),
+                "magisDataDir": self.config.magisDataDir,
+                "yyYearId": self.config.db.yy
+            });
+            saldo.parse();
+            saldo.make_replic()
         else:
             salda = []
 
