@@ -139,11 +139,12 @@ class SelectMP(object):
             # saldo =  # saldo_MP.txt
             # salda, errlog = parse.start_saldo(saldo)
             # parse.make_saldo_replic(salda, self.config.magisDataDir, self.config.db.yy)
-            saldo = SaldoCollection(Proxy({
+            saldoOptions = Proxy({
                 "importFile": configParser.get( 'saldo'),
                 "magisDataDir": self.config.magisDataDir,
                 "yyYearId": self.config.db.yy
             });
+            saldo = SaldoCollection(saldoOptions);
             saldo.parse();
             saldo.make_replic()
 
