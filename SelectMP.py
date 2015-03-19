@@ -10,11 +10,13 @@ from proxy import Proxy
 import parse
 
 from saldo import SaldoCollection
+from products import ProductCollection
 
 class SelectMP(object):
     def __init__(self, ini_path="SelectMP.ini"):
         print ini_path
         self.config = IniParser(ini_path)
+        self.products = ProductCollection();
 
 
     def art(self, fn, fp, ofnnew, ofcnew, salda):#otdelq artikuli i kontragenti!!!!!
@@ -123,6 +125,7 @@ class SelectMP(object):
         return errors
 
     def main(self):
+
         os.chdir(self.config.paths.magisDB)
 
         parse.ArtKeyGOD.work_path = self.config.paths.magisDB
@@ -142,7 +145,8 @@ class SelectMP(object):
             saldoOptions = Proxy({
                 "importFile": configParser.get( 'saldo'),
                 "magisDataDir": self.config.magisDataDir,
-                "yyYearId": self.config.db.yy
+                "yyYearId": self.config.db.yy,
+                "products": self.products
             });
             saldo = SaldoCollection(saldoOptions);
             saldo.parse();

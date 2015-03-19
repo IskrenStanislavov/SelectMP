@@ -1,5 +1,73 @@
 # encoding: utf8
 
+"""
+            # saldo =  # saldo_MP.txt
+            # salda, errlog = parse.start_saldo(saldo)
+            # parse.make_saldo_replic(salda, self.config.magisDataDir, self.config.db.yy)
+
+            saldo = SaldoCollection(Proxy({
+                "importFile": configParser.get( 'saldo'),
+                "magisDataDir": self.config.magisDataDir,
+                "yyYearId": self.config.db.yy
+            });
+            saldo.parse();
+            saldo.make_replic()
+"""
+class LineSplitFileReader(object):
+
+    def __init__(self, filename, mapper, selector, shouldJoinCheck):
+        self.filename = filename;
+        self.mapper = mapper;
+        self.selector = selector;
+        self.shouldJoinCheck = shouldJoinCheck;
+
+    def readFile(self):
+        try:
+            with open(self.filename) as f:
+                self.data = f.readlines()
+        except IOError as err:
+            print("Cannot read (%s): %s.\n check your config file.\n Exiting" % (self.filename, str(err)))
+            sys.exit(1)
+        else:
+            f.close()
+
+        self._data = open(self.filename).readlines()
+
+    def filterInvalidLines(self):
+
+        self.data = map(self.mapper, self._data);
+        self.data = filter(self.selector, self.data);
+
+    def getEnumerated(self):
+        return enumerate(self.data)
+    def getLinesOnly(self):
+        return iter(self.data)
+
+# joiner = 
+
+class SaldoCollection(object):
+    lineSplitChar = "|"
+    lineSplitFieldsRequired = 9
+    fieldsOnManyLines = [1]
+    checkFieldIndex = -1
+
+    mapper = lambda line: ANSI(line).split(lineSplitChar)[1:-1] # in super
+    selector = lambda fields: len(fields) == lineSplitFieldsRequired # in super
+    shouldJoin = lambda fields: (not fields[-1].strip())
+    def __init__(self, options):
+        self.options = options;
+
+        self.products = options.products; #ArtKeyGOD
+        self.data = [];
+        self.errors = [];
+
+        self.fileWorker = LineSplitFileReader(options.importFile, self.mapper, self.selector) # in super
+
+    def parse(self):
+        raise Exception("soon")
+    def save_replic(self):
+        raise Exception("soon")
+
 from dosutil import ANSI, ANSI2OEM
 import os, sys
 #~ from vikBoiana import parse as scet_parse
@@ -19,8 +87,9 @@ def upper(s):
     for lower, upper in cyrtr.items():
         s = s.replace(lower, upper)
     return s
-if __debug__:
-    print upper(cyr)
+# if __debug__:
+#     print upper(cyr)
+#     print cyr.upper()
 
 def start_saldo(fn='saldo_MP.txt'):
     """
@@ -38,8 +107,8 @@ def start_saldo(fn='saldo_MP.txt'):
     salda = []
     errlog = []
     for i,line in enumerate(open(fn).readlines()):
-        line = line.split('|')[1:-1]
         line = ANSI(line)
+        line = line.split('|')[1:-1]
         if len(line) < 9:
             continue
         if not line[-1].strip():
