@@ -15,11 +15,11 @@
 """
 class LineSplitFileReader(object):
 
-    def __init__(self, filename, mapper, selector, shouldJoinCheck):
+    def __init__(self, filename, mapper, selector, shouldJoin):
         self.filename = filename;
         self.mapper = mapper;
         self.selector = selector;
-        self.shouldJoinCheck = shouldJoinCheck;
+        self.shouldJoin = shouldJoin;
 
     def readFile(self):
         try:
@@ -37,59 +37,56 @@ class LineSplitFileReader(object):
 
         self.data = map(self.mapper, self._data);
         self.data = filter(self.selector, self.data);
+        self.data = map(self.shouldJoin, self.data);
 
-    def getEnumerated(self):
-        return enumerate(self.data)
-    def getLinesOnly(self):
-        return iter(self.data)
+    def __iter__(self):
+        for (i,row) in enumerate(self.data):
+            yield i, row[0], map(lambda field: field.strip(), row)
 
 # joiner = 
 
 class SaldoCollection(object):
     lineSplitChar = "|"
     lineSplitFieldsRequired = 9
-    fieldsOnManyLines = [1]
+    joinRowMap = {"1":"art_name"}
     checkFieldIndex = -1
+    fieldMap = {"0":"MP_id", "1": "art_name", "2":"qty", "6":"price_bought_total"}
 
     mapper = lambda line: ANSI(line).split(lineSplitChar)[1:-1] # in super
     selector = lambda fields: len(fields) == lineSplitFieldsRequired # in super
-    shouldJoin = lambda fields: (not fields[-1].strip())
+    shouldJoin = lambda fields: (len(fields[-1].strip())==0, fields)
     def __init__(self, options):
         self.options = options;
 
-        self.products = options.products; #ArtKeyGOD
+        # self.products = options.products; #ArtKeyGOD
+        self.products = [];
         self.data = [];
         self.errors = [];
 
-        self.fileWorker = LineSplitFileReader(options.importFile, self.mapper, self.selector) # in super
+        self.fileWorker = LineSplitFileReader(options.importFile, self.mapper, self.selector, self.shouldJoin) # in super
 
     def parse(self):
-        raise Exception("soon")
+        self.fileWorker.readFile()
+        self.fileWorker.filterInvalidLines()
+        # lastSaldo = jSaldo()
+        jSaldo = {}#or defaultDict
+        for (rowIndex, joinFlag, fields) in self.fileWorker.getEnumerated():
+            if joinFlag:
+                #use the same saldo
+                fieldMap = self.joinRowMap
+            else:
+                self.data.append(jSaldo)
+                jSaldo = {}; #new dict()
+                fieldMap = self.fieldMap
+
+            for (i, fieldValue) in enumerate(fields):
+                fieldName = fieldMap.get(str(i), None)
+                if fieldName is not None:
+                    jSaldo[fieldName] = jSaldo.get(fieldName, "") + fieldValue
+        self.append(jSaldo)
+
     def save_replic(self):
         raise Exception("soon")
-
-from dosutil import ANSI, ANSI2OEM
-import os, sys
-#~ from vikBoiana import parse as scet_parse
-
-import encodings
-if encodings.search_function('mbcs') is None:
-    encodings._cache['mbcs'] = encodings.search_function('cp1251')
-cyr = """А а	Б б	В в	Г г	Д д	Е е	Ж ж	З з	И и	Й й	
-К к	Л л	М м	Н н	О о	П п	Р р	С с	Т т	У у	
-Ф ф	Х х	Ц ц	Ч ч	Ш ш	Щ щ	Ъ ъ	Ь ь	Ю ю	Я я"""
-cyrtr = {}
-for kv in cyr.split('	'):
-    kv = kv.strip()
-    k,v = kv.split()
-    cyrtr[v] = k
-def upper(s):
-    for lower, upper in cyrtr.items():
-        s = s.replace(lower, upper)
-    return s
-# if __debug__:
-#     print upper(cyr)
-#     print cyr.upper()
 
 def start_saldo(fn='saldo_MP.txt'):
     """
@@ -131,11 +128,35 @@ def start_saldo(fn='saldo_MP.txt'):
         qty = float(line[2]) #quantity
         #~ p1, p2, p3, p4, p5, p6 = map(float, line[-6:])
         #~ assert abs(p6/qty - p3) < 1e-10, (p6/qty,p3)
-        price_bought = float(line[6]) / qty
+        # price_bought = float(line[6]) / qty
         price_bought_total = float(line[6])
-        magis_id = art_key_generator.get_key(MP_id)
-        salda.append(SalDo(magis_id, MP_id, art_name, qty, price_bought, price_bought_total))
+        salda.append(SalDo(MP_id, art_name, qty, price_bought_total))
     return salda, errlog
+
+
+from dosutil import ANSI, ANSI2OEM
+import os, sys
+#~ from vikBoiana import parse as scet_parse
+
+import encodings
+if encodings.search_function('mbcs') is None:
+    encodings._cache['mbcs'] = encodings.search_function('cp1251')
+cyr = """А а	Б б	В в	Г г	Д д	Е е	Ж ж	З з	И и	Й й	
+К к	Л л	М м	Н н	О о	П п	Р р	С с	Т т	У у	
+Ф ф	Х х	Ц ц	Ч ч	Ш ш	Щ щ	Ъ ъ	Ь ь	Ю ю	Я я"""
+cyrtr = {}
+for kv in cyr.split('	'):
+    kv = kv.strip()
+    k,v = kv.split()
+    cyrtr[v] = k
+def upper(s):
+    for lower, upper in cyrtr.items():
+        s = s.replace(lower, upper)
+    return s
+# if __debug__:
+#     print upper(cyr)
+#     print cyr.upper()
+
 
 saldo_start_line = ''.join([
     "15~1~01.01.20%s~0000000001~!~0000000000~_______R________~1~0000000000~",
@@ -151,14 +172,21 @@ def make_saldo_replic(salda, data_path, yy):
 
 class SalDo(object):
     meassure = "бр."
-    def __init__(self, magis_id, MP_id, art_name, qty, price_bought, price_bought_total):
+    def __init__(self, magis_id, MP_id, art_name, qty, price_bought_total):
         self.magis_id = magis_id
         self.MP_id = MP_id
         self.name = art_name
         self.qty = qty
-        self.p1 = self.price_bought = price_bought
+        self.p1 = self.price_bought
         self.p2 = self.price_bought_total = price_bought_total
-
+    @property
+    def price_bought(self):
+        return self.price_bought_total / self.qty
+    
+    @property
+    def magis_id(self):
+        return art_key_generator.get_key(MP_id)
+    
     def toexport_string(self, yy):
         '15~0~102657~01.01.2013~1.000000000000000e+000~5.570000000000000e+000~1.114000000000000e+000~'
         return saldo_artikul_line % (self.magis_id, yy, self.qty, self.p1, self.p2)
