@@ -10,13 +10,17 @@ from proxy import Proxy
 import parse
 
 from saldo import SaldoCollection
-from products import ProductCollection
+
+try:
+    from products import ProductCollection
+except ImportError as ie:
+    ProductCollection = None
 
 class SelectMP(object):
     def __init__(self, ini_path="SelectMP.ini"):
-        print ini_path
         self.config = IniParser(ini_path)
-        self.products = ProductCollection();
+        if (ProductCollection is not None):
+            self.products = ProductCollection();
 
 
     def art(self, fn, fp, ofnnew, ofcnew, salda):#otdelq artikuli i kontragenti!!!!!
@@ -125,7 +129,19 @@ class SelectMP(object):
         return errors
 
     def main(self):
+        #SALDO
+        if self.config.saldo.do:
+            # saldo =  # saldo_MP.txt
+            # salda, errlog = parse.start_saldo(saldo)
+            # parse.make_saldo_replic(salda, self.config.magisDataDir, self.config.db.yy)
+            options = self.config.saldo;
+            # options.products = self.products;
 
+            saldo = SaldoCollection(options);
+            saldo.parse();
+            saldo.format();
+        if (ProductCollection is None):
+            return;
         os.chdir(self.config.paths.magisDB)
 
         parse.ArtKeyGOD.work_path = self.config.paths.magisDB
@@ -136,21 +152,6 @@ class SelectMP(object):
 
         print self.config.paths.importFiles, self.config.files.dolphine_dealers_file
         print self.config.paths.magisDataDir
-
-        #SALDO
-        if self.config.options.import_saldo:
-            # saldo =  # saldo_MP.txt
-            # salda, errlog = parse.start_saldo(saldo)
-            # parse.make_saldo_replic(salda, self.config.magisDataDir, self.config.db.yy)
-            saldoOptions = Proxy({
-                "importFile": configParser.get( 'saldo'),
-                "magisDataDir": self.config.magisDataDir,
-                "yyYearId": self.config.db.yy,
-                "products": self.products
-            });
-            saldo = SaldoCollection(saldoOptions);
-            saldo.parse();
-            saldo.make_replic()
 
         txt = open(self.config.files.dolphine_dealers_file).read()
         txt = ANSI(txt)

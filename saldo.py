@@ -13,6 +13,9 @@
             saldo.parse();
             saldo.make_replic()
 """
+from collections import OrderedDict
+from proxy import Proxy
+
 class LineSplitFileReader(object):
 
     def __init__(self, filename, mapper, selector, shouldJoin):
@@ -26,7 +29,7 @@ class LineSplitFileReader(object):
             with open(self.filename) as f:
                 self.data = f.readlines()
         except IOError as err:
-            print("Cannot read (%s): %s.\n check your config file.\n Exiting" % (self.filename, str(err)))
+            print("\n\n Cannot read (%s): \n %s.\n check your config file.\n Exiting" % (self.filename, str(err)))
             sys.exit(1)
         else:
             f.close()
@@ -41,20 +44,46 @@ class LineSplitFileReader(object):
 
     def __iter__(self):
         for (i,row) in enumerate(self.data):
-            yield i, row[0], map(lambda field: field.strip(), row)
+            yield i, row[0], map(lambda field: field.strip(), row[1])
 
 # joiner = 
 
 class SaldoCollection(object):
     lineSplitChar = "|"
     lineSplitFieldsRequired = 9
-    joinRowMap = {"1":"art_name"}
+    joinRowMap = {"1":Proxy({
+        "name": "art_name",
+        "cast": str
+        })
+    }
     checkFieldIndex = -1
-    fieldMap = {"0":"MP_id", "1": "art_name", "2":"qty", "6":"price_bought_total"}
+    fieldMap = OrderedDict({
+        "0":Proxy({
+            "name": "MP_id",
+            "cast": str
+        }), "1":Proxy({
+            "name": "art_name",
+            "cast": str
+        }), "2":Proxy({
+            "name": "qty",
+            "cast": float
+        }), "6":Proxy({
+            "name": "price_bought_total",
+            "cast": float
+        })
+    })
 
-    mapper = lambda line: ANSI(line).split(lineSplitChar)[1:-1] # in super
-    selector = lambda fields: len(fields) == lineSplitFieldsRequired # in super
-    shouldJoin = lambda fields: (len(fields[-1].strip())==0, fields)
+    mapper = lambda self,line: ANSI(line).split(self.lineSplitChar)[1:-1] # in super
+    selector = lambda self,fields: (len(fields) == self.lineSplitFieldsRequired) and (not fields[0] or ANSI(fields[0]) not in ANSI(self.options.skips)) # in super
+    shouldJoin = lambda self,fields: (len(fields[-1].strip())==0, fields)
+
+    # exports
+    saldo_start_line = ''.join([
+        "15~1~01.01.20%s~0000000001~!~0000000000~_______R________~1~0000000000~",
+        "0.000000000000000e+000~"*3,"!~0~!~!~!~!~!~!~!~!~!~!~","0.000000000000000e+000~"*23, '\n'])
+    saldo_artikul_line = "15~0~%s~01.01.20%s~%.15e~%.15e~%.15e~\n"
+
+
     def __init__(self, options):
         self.options = options;
 
@@ -63,29 +92,42 @@ class SaldoCollection(object):
         self.data = [];
         self.errors = [];
 
-        self.fileWorker = LineSplitFileReader(options.importFile, self.mapper, self.selector, self.shouldJoin) # in super
+        self.fileWorker = LineSplitFileReader(options._import, self.mapper, self.selector, self.shouldJoin) # in super
 
     def parse(self):
         self.fileWorker.readFile()
         self.fileWorker.filterInvalidLines()
         # lastSaldo = jSaldo()
-        jSaldo = {}#or defaultDict
-        for (rowIndex, joinFlag, fields) in self.fileWorker.getEnumerated():
+        jSaldo = OrderedDict();
+        for (rowIndex, joinFlag, fields) in self.fileWorker:
             if joinFlag:
                 #use the same saldo
                 fieldMap = self.joinRowMap
             else:
-                self.data.append(jSaldo)
-                jSaldo = {}; #new dict()
+                if jSaldo:
+                    self.data.append(jSaldo)
+                    jSaldo = OrderedDict();
                 fieldMap = self.fieldMap
 
             for (i, fieldValue) in enumerate(fields):
-                fieldName = fieldMap.get(str(i), None)
-                if fieldName is not None:
-                    jSaldo[fieldName] = jSaldo.get(fieldName, "") + fieldValue
-        self.append(jSaldo)
+                fieldCfg = fieldMap.get(str(i), None)
+                if fieldCfg is not None:
+                    jSaldo[fieldCfg.name] = fieldCfg.cast(jSaldo.get(fieldCfg.name, "") + fieldValue)
+        if jSaldo:
+            self.data.append(jSaldo)
 
-    def save_replic(self):
+    def toexport_string(self, s):
+        yy = self.options.yy
+        s["price_single"] = s.get("price_bought_total") / s.get("qty")
+        return self.saldo_artikul_line%(s.get("magis_id"), yy, s.get("qty"), s.get("price_single"), s.get("price_bought_total"))
+
+    def format(self):
+        fn = self.options.get("replic")
+        with open(self.options._export, 'w+') as saldo_writer:
+            lines =  [self.saldo_start_line%self.options.yy]
+            lines += [self.toexport_string(s) for s in self.data]
+            saldo_writer.writelines(lines)
+            saldo_writer.close()
         raise Exception("soon")
 
 def start_saldo(fn='saldo_MP.txt'):
@@ -138,9 +180,9 @@ from dosutil import ANSI, ANSI2OEM
 import os, sys
 #~ from vikBoiana import parse as scet_parse
 
-import encodings
-if encodings.search_function('mbcs') is None:
-    encodings._cache['mbcs'] = encodings.search_function('cp1251')
+# import encodings
+# if encodings.search_function('mbcs') is None:
+#     encodings._cache['mbcs'] = encodings.search_function('866')
 cyr = """А а	Б б	В в	Г г	Д д	Е е	Ж ж	З з	И и	Й й	
 К к	Л л	М м	Н н	О о	П п	Р р	С с	Т т	У у	
 Ф ф	Х х	Ц ц	Ч ч	Ш ш	Щ щ	Ъ ъ	Ь ь	Ю ю	Я я"""
@@ -157,10 +199,6 @@ def upper(s):
 #     print upper(cyr)
 #     print cyr.upper()
 
-
-saldo_start_line = ''.join([
-    "15~1~01.01.20%s~0000000001~!~0000000000~_______R________~1~0000000000~",
-    "0.000000000000000e+000~"*3,"!~0~!~!~!~!~!~!~!~!~!~!~","0.000000000000000e+000~"*23, '\n'])
 
 saldo_artikul_line = "15~0~%s~01.01.20%s~%.15e~%.15e~%.15e~\n"
 
