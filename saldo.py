@@ -10,10 +10,11 @@
             saldo.make_replic()
 """
 from collections import OrderedDict
-from proxy import Proxy
+from utils import Proxy
 import codecs
 from dosutil import ANSI, ANSI2OEM
 import os, sys
+
 
 class LineSplitFileReader(object):
 
