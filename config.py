@@ -5,7 +5,7 @@ import parse
 import time, os
 import ConfigParser
 from datetime import datetime
-from proxy import Proxy
+from utils import Proxy
 
 class IniParser(ConfigParser.ConfigParser):
     def __init__(self, ini_path="SelectMP.ini"):

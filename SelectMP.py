@@ -6,7 +6,7 @@ from datetime import datetime
 
 
 from config import IniParser
-from proxy import Proxy
+from utils import Proxy
 import parse
 
 from saldo import SaldoCollection

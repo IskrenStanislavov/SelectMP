@@ -14,7 +14,7 @@
             saldo.make_replic()
 """
 from collections import OrderedDict
-from proxy import Proxy
+from utils import Proxy
 
 class LineSplitFileReader(object):
 
