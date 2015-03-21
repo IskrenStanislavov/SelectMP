@@ -14,18 +14,6 @@ from proxy import Proxy
 import codecs
 from dosutil import ANSI, ANSI2OEM
 import os, sys
-#~ from vikBoiana import parse as scet_parse
-
-import encodings
-if encodings.search_function('mbcs') is None:
-    encodings._cache['mbcs'] = encodings.search_function('utf-8')
-    encodings._cache['cp65001'] = encodings.search_function('utf-8')
-
-def cp65001(name):
-    if name.lower()=='cp65001':
-        return codecs.lookup('utf-8')
-
-codecs.register(cp65001)
 
 class LineSplitFileReader(object):
 
@@ -99,10 +87,7 @@ class SaldoCollection(object):
 
     def __init__(self, options):
         self.options = options;
-        # if __debug__:
-        #     print "skips:\n"+self.options.skips
-
-        # self.products = options.products; #ArtKeyGOD
+        self.products = options.products;
         self.products = [];
         self.data = [];
         self.errors = [];

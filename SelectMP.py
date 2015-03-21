@@ -6,7 +6,7 @@ from datetime import datetime
 
 
 from config import IniParser
-from utils import Proxy
+from utils import Proxy, formatLabel
 import parse
 
 from saldo import SaldoCollection
@@ -128,19 +128,23 @@ class SelectMP(object):
         f9.close()
         return errors
 
-    def main(self):
-        #SALDO
-        if self.config.saldo.do:
-            # saldo =  # saldo_MP.txt
-            # salda, errlog = parse.start_saldo(saldo)
-            # parse.make_saldo_replic(salda, self.config.magisDataDir, self.config.db.yy)
-            options = self.config.saldo;
-            if (ProductCollection is not None):
-                options.products = self.products;
+    def saldo(self):
+        formatLabel("SALDO")
+        options = self.config.saldo;
+        if (ProductCollection is not None):
+            options.products = self.products;
+        else:
+            options.products = None
 
-            saldo = SaldoCollection(options);
-            saldo.parse();
-            saldo.format();
+        saldo = SaldoCollection(options);
+        saldo.parse();
+        saldo.format();
+        formatLabel("SALDO",end=True)
+        print ""
+
+    def main(self):
+        if self.config.saldo.do:
+            self.saldo();
         if (ProductCollection is None):
             return;
         os.chdir(self.config.paths.magisDB)

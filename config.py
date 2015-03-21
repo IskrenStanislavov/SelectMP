@@ -5,7 +5,7 @@ import parse
 import time, os
 import ConfigParser
 from datetime import datetime
-from proxy import Proxy
+from utils import Proxy, formatLabel
 import codecs
 
 class IniParser(ConfigParser.ConfigParser):
@@ -51,7 +51,6 @@ class IniParser(ConfigParser.ConfigParser):
         self.errors.missingEIK              = "Липсва ЕИК към %s № (%s) от дата:%s; "
         self.errors.timeStamp               = "\n\n!!! Date & time: %s\n"%(datetime.now())
         if __debug__:
-            print "###"*10 + "   CONFIG   " + "###"*10
+            formatLabel("CONFIG")
             print "skips:\n%s" % self.saldo.skips.encode("cp1251")
-            print "###"*10 + "   CONFIG   " + "###"*10
-            print ""
+            formatLabel("CONFIG", end=True)
