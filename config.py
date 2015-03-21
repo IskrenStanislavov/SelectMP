@@ -5,7 +5,7 @@ import parse
 import time, os
 import ConfigParser
 from datetime import datetime
-from utils import Proxy
+from proxy import Proxy
 
 class IniParser(ConfigParser.ConfigParser):
     def __init__(self, ini_path="SelectMP.ini"):
@@ -39,11 +39,12 @@ class IniParser(ConfigParser.ConfigParser):
         self.saldo.yy                       = self.get("saldo", "YearYY")
         self.saldo._import                  = os.path.join(self._import.path, self.get("saldo", "import_file"))
         self.saldo._export                  = os.path.join(self._export.path, self.get("saldo", "replic"))
-        # self.saldo.skips                    = map(lambda line: line.split('|')[1],self.get("saldo", "skips").split())
         self.saldo.skips                    = self.get("saldo", "skips")
         self.errors                         = Proxy()
         self.errors.missingEIK              = "Липсва ЕИК към %s № (%s) от дата:%s; "
         self.errors.timeStamp               = "\n\n!!! Date & time: %s\n"%(datetime.now())
 
         if __debug__:
-            print "skips:\n",self.saldo.skips.split()
+            print "skips:\n"
+            for line in self.saldo.skips.split():
+                print line
