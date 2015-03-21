@@ -6,9 +6,10 @@ Define Structure:
 
 Classes:
     new Object()
-        __init__(self, data, format):
-            self.parse(data, format)
-        parse(self, data, format):
+        __init__(self, options):
+            self.options = options
+
+        parse(self):
             ....
         check_data(self):
             ....
