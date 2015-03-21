@@ -6,12 +6,18 @@ import time, os
 import ConfigParser
 from datetime import datetime
 from proxy import Proxy
+import codecs
 
 class IniParser(ConfigParser.ConfigParser):
     def __init__(self, ini_path="SelectMP.ini"):
         ConfigParser.ConfigParser.__init__(self)
         #os.path.splitext(__file__)[0] +'.ini'
-        self.read([ini_path,])
+        try:
+            with codecs.open(ini_path, 'r', "utf8") as f:
+                self.readfp(f)
+        except IOError as err:
+            print("\n\n Cannot read (%s): \n %s.\n check your config file.\n Exiting" % (ini_path, str(err)))
+            sys.exit(1)
 
         self._export                        = Proxy()
         self._export.path                   = self.get("_export", 'path')
@@ -40,11 +46,12 @@ class IniParser(ConfigParser.ConfigParser):
         self.saldo._import                  = os.path.join(self._import.path, self.get("saldo", "import_file"))
         self.saldo._export                  = os.path.join(self._export.path, self.get("saldo", "replic"))
         self.saldo.skips                    = self.get("saldo", "skips")
+        self.saldo.encoding                 = self.get("saldo", "encoding")
         self.errors                         = Proxy()
         self.errors.missingEIK              = "Липсва ЕИК към %s № (%s) от дата:%s; "
         self.errors.timeStamp               = "\n\n!!! Date & time: %s\n"%(datetime.now())
-
         if __debug__:
-            print "skips:\n"
-            for line in self.saldo.skips.split():
-                print line
+            print "###"*10 + "   CONFIG   " + "###"*10
+            print "skips:\n%s" % self.saldo.skips.encode("cp1251")
+            print "###"*10 + "   CONFIG   " + "###"*10
+            print ""

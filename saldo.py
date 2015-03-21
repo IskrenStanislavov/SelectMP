@@ -1,9 +1,5 @@
 # encoding: utf8
 
-# import encodings
-# if encodings.search_function('mbcs') is None:
-#     encodings._cache['mbcs'] = encodings.search_function('cp65001')
-
 """
             saldo = SaldoCollection(Proxy({
                 "importFile": configParser.get( 'saldo'),
@@ -13,31 +9,43 @@
             saldo.parse();
             saldo.make_replic()
 """
-import os, sys
-from utils import Proxy
-
-from dosutil import ANSI, ANSI2OEM
 from collections import OrderedDict
+from proxy import Proxy
+import codecs
+from dosutil import ANSI, ANSI2OEM
+import os, sys
+#~ from vikBoiana import parse as scet_parse
+
+import encodings
+if encodings.search_function('mbcs') is None:
+    encodings._cache['mbcs'] = encodings.search_function('utf-8')
+    encodings._cache['cp65001'] = encodings.search_function('utf-8')
+
+def cp65001(name):
+    if name.lower()=='cp65001':
+        return codecs.lookup('utf-8')
+
+codecs.register(cp65001)
 
 class LineSplitFileReader(object):
 
-    def __init__(self, filename, mapper, selector, shouldJoin):
+    def __init__(self, filename, encoding, mapper, selector, shouldJoin):
         self.filename = filename;
+        self.encoding = encoding;
         self.mapper = mapper;
         self.selector = selector;
         self.shouldJoin = shouldJoin;
 
     def readFile(self):
         try:
-            with open(self.filename) as f:
-                self.data = f.readlines()
+            with codecs.open(self.filename, 'r', self.encoding) as f:
+                self._data = f.readlines()
+                f.close()
         except IOError as err:
             print("\n\n Cannot read (%s): \n %s.\n check your config file.\n Exiting" % (self.filename, str(err)))
             sys.exit(1)
         else:
-            f.close()
-
-        self._data = open(self.filename).readlines()
+            print "lineread:%s\n"%self._data[0].strip()
 
     def filterInvalidLines(self):
 
@@ -78,9 +86,8 @@ class SaldoCollection(object):
         "price_single":lambda self, data: (data.get("price_bought_total") / data.get("qty")),
         "magis_id": lambda self, data: (self.products.get_native_magis_key(MP_id))
         })
-
-    mapper = lambda self,line: ANSI(line).split(self.lineSplitChar)[1:-1] # in super
-    selector = lambda self,fields: (len(fields) == self.lineSplitFieldsRequired) and (not fields[0] or ANSI(fields[0]) not in ANSI(self.options.skips)) # in super
+    mapper = lambda self,line: ANSI(line.encode("cp1251")).split(self.lineSplitChar)[1:-1] # in super
+    selector = lambda self,fields: (len(fields) == self.lineSplitFieldsRequired) and (not fields[0] or ANSI(fields[0]) not in ANSI(self.options.skips.encode("cp1251"))) # in super
     shouldJoin = lambda self,fields: (len(fields[-1].strip())==0, fields)
 
     # exports
@@ -92,13 +99,15 @@ class SaldoCollection(object):
 
     def __init__(self, options):
         self.options = options;
+        # if __debug__:
+        #     print "skips:\n"+self.options.skips
 
         # self.products = options.products; #ArtKeyGOD
         self.products = [];
         self.data = [];
         self.errors = [];
 
-        self.fileWorker = LineSplitFileReader(options._import, self.mapper, self.selector, self.shouldJoin) # in super
+        self.fileWorker = LineSplitFileReader(options._import, options.encoding, self.mapper, self.selector, self.shouldJoin) # in super
 
     def parse(self):
         self.fileWorker.readFile()
