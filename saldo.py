@@ -1,13 +1,16 @@
 # encoding: utf8
 
 """
-            saldo = SaldoCollection(Proxy({
-                "importFile": configParser.get( 'saldo'),
-                "magisDataDir": self.config.magisDataDir,
-                "yyYearId": self.config.db.yy
-            });
+            saldo = SaldoCollection(config);
+                config.do
+                config.yy
+                config._import
+                config._export
+                config.skips
+                config.encoding
+
             saldo.parse();
-            saldo.make_replic()
+            saldo.format()
 """
 from collections import OrderedDict
 from utils import Proxy
