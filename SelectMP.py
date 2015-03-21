@@ -135,7 +135,8 @@ class SelectMP(object):
             # salda, errlog = parse.start_saldo(saldo)
             # parse.make_saldo_replic(salda, self.config.magisDataDir, self.config.db.yy)
             options = self.config.saldo;
-            # options.products = self.products;
+            if (ProductCollection is not None):
+                options.products = self.products;
 
             saldo = SaldoCollection(options);
             saldo.parse();
