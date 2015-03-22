@@ -96,9 +96,9 @@ class SaldoCollection(object):
 
     def format(self):
         fn = self.options.get("replic")
+        lines =  [self.saldo_start_line%self.options.yy]
+        lines += [self.toexport_string(s) for s in self.data]
         with open(self.options._export, 'w+') as saldo_writer:
-            lines =  [self.saldo_start_line%self.options.yy]
-            lines += [self.toexport_string(s) for s in self.data]
             saldo_writer.writelines(lines)
             saldo_writer.close()
         raise Exception("soon")
