@@ -17,6 +17,7 @@ from utils import Proxy
 from dosutil import ANSI, ANSI2OEM
 
 from utils import LineSplitFileReader
+from utils import FileSaver
 
 class SaldoCollection(object):
     lineSplitChar = "|"
@@ -65,14 +66,15 @@ class SaldoCollection(object):
         self.data = [];
         self.errors = [];
 
-        self.fileWorker = LineSplitFileReader(options._import, options.encoding, self.mapper, self.selector, self.shouldJoin) # in super
+        self.importManager = LineSplitFileReader(options._import, options.encoding._import, self.mapper, self.selector, self.shouldJoin) # in super
+        self.exportManager = FileSaver(options._export, options.encoding._export)
 
     def parse(self):
-        self.fileWorker.readFile()
-        self.fileWorker.filterInvalidLines()
+        self.importManager.readFile()
+        self.importManager.filterInvalidLines()
         # lastSaldo = jSaldo()
         jSaldo = OrderedDict();
-        for (rowIndex, joinFlag, fields) in self.fileWorker:
+        for (rowIndex, joinFlag, fields) in self.importManager:
             if joinFlag:
                 #use the same saldo
                 fieldMap = self.joinRowMap
@@ -98,9 +100,7 @@ class SaldoCollection(object):
         fn = self.options.get("replic")
         lines =  [self.saldo_start_line%self.options.yy]
         lines += [self.toexport_string(s) for s in self.data]
-        with open(self.options._export, 'w+') as saldo_writer:
-            saldo_writer.writelines(lines)
-            saldo_writer.close()
+        self.exportManager.writeLines(lines)
         raise Exception("soon")
 
 if __name__ == '__main__':

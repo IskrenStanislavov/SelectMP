@@ -49,13 +49,16 @@ class IniParser(ConfigParser.ConfigParser):
         # self.files.export.artikuli          = os.path.join(self._export.path, 'artikuli-new.txt')
         # self.files.export.kontragenti       = os.path.join(self._export.path, 'contragenti-new.txt')
 
-        self.saldo = Proxy()
+        self.encoding = Proxy()
+        self.encoding._import               = self.get("_import", "encoding")
+        self.encoding._export               = self.get("_export", "encoding")
+
+        self.saldo = Proxy(data={"encoding":self.encoding})
         self.saldo.do                       = self.get("saldo", "do")
         self.saldo.yy                       = self.get("saldo", "YearYY")
         self.saldo._import                  = os.path.join(self._import.path, self.get("saldo", "import_file"))
         self.saldo._export                  = os.path.join(self._export.path, self.get("saldo", "replic"))
         self.saldo.skips                    = self.get("saldo", "skips")
-        self.saldo.encoding                 = self.get("saldo", "encoding")
         self.errors                         = Proxy()
         self.errors.missingEIK              = "Липсва ЕИК към %s № (%s) от дата:%s; "
         self.errors.timeStamp               = "\n\n!!! Date & time: %s\n"%(datetime.now())
