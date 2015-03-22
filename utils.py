@@ -48,3 +48,20 @@ class LineSplitFileReader(object):
     def __iter__(self):
         for (i,row) in enumerate(self.data):
             yield i, row[0], map(lambda field: field.strip(), row[1])
+
+class FileSaver(object):
+
+    def __init__(self, filename, encoding):
+        self.filename = filename;
+        self.encoding = encoding;
+
+    def writeLines(self, lines):
+        try:
+            with codecs.open(self.filename, 'w+', self.encoding) as f:
+                f.writelines(lines)
+                f.close()
+        except IOError as err:
+            print("\n\n Cannot read (%s): \n %s.\n check your config file.\n Exiting" % (self.filename, str(err)))
+            sys.exit(1)
+        else:
+            print "file written:%s\n"%self.filename
