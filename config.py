@@ -8,12 +8,21 @@ from datetime import datetime
 from utils import Proxy, formatLabel
 import codecs
 
+try:
+    with open("SelectMP.ini.encoding") as f:
+        iniEncoding = f.read().strip()
+except IOError as err:
+    print "Could not readfind \"SelectMP.ini.encoding\", using default \"utf8\""
+    iniEncoding = "utf8"
+else:
+    print "Encoding found:%s"%iniEncoding
+
 class IniParser(ConfigParser.ConfigParser):
     def __init__(self, ini_path="SelectMP.ini"):
         ConfigParser.ConfigParser.__init__(self)
         #os.path.splitext(__file__)[0] +'.ini'
         try:
-            with codecs.open(ini_path, 'r', "utf8") as f:
+            with codecs.open(ini_path, 'r', iniEncoding) as f:
                 self.readfp(f)
         except IOError as err:
             print("\n\n Cannot read (%s): \n %s.\n check your config file.\n Exiting" % (ini_path, str(err)))
