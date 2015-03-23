@@ -1,27 +1,4 @@
 # encoding: utf8
-
-"""
-          С П Р А В К А    Н А Л И Ч Н О С Т И    К Ъ М    Д А Т А   01.01.2014
-
- 
- Обект        : СКЛАД СЕЛЕКТ                                      
- Група стоки  : ЕЛ. МАТЕРИАЛИ                 
- +----------+-----------------+----------+-------+-------+-------+------------+------------+------------+
- |Катал. Nо | Артикул         | Колич-во |Ц прид.|П.ц+ДДС|П.ц-ДДС| Ст-ст прид.| Прод.ст+ДДС| Прод.ст-ДДС|
- +----------+-----------------+----------+-------+-------+-------+------------+------------+------------+
- |15004     |АП 3х25 А        |      4.00|   3.23|   8.65|   6.00|       12.90|       34.60|       24.00|
- |15004     |АП 3х25 А        |     10.00|   3.30|   8.65|   6.00|       33.00|       86.50|       60.00|
-            saldo = SaldoCollection(config);
-                config.do
-                config.yy
-                config._import
-                config._export
-                config.skips
-                config.encoding
-
-            saldo.parse();
-            saldo.format()
-"""
 from collections import OrderedDict
 from utils import Proxy
 from dosutil import ANSI, ANSI2OEM
@@ -29,24 +6,56 @@ from dosutil import ANSI, ANSI2OEM
 from utils import LineSplitFileReader
 from utils import FileSaver
 
+
+"""
+  Контрагенти                   
+ +----------+--------------------------------+---------------+--------------------------------+-----------------+-----------------+----------------------+
+ | Код      | Име                            | ЕИК/ЕГН       | Адрес                          | Телефон         | Факс            | e-mail               |
+ +----------+--------------------------------+---------------+--------------------------------+-----------------+-----------------+----------------------+
+ | 1        | ДОМЕЛА ООД                     | 103052149     | гр. Варна, ул."Селиолу", 40А   |                 |                 |                      | 
+ | 2        | АССА - АЛЕКСАНДЪР ВАНГЕЛОВ ЕТ  | 813098792     | гр. Варна, ул. "Македония", 35 |                 |                 |                      | 
+ | 3        | БОГИ ЕТ                        | 826002475     | гр. Разград, ул. "България", 9 |                 |                 |                      | 
+ | 4        | СИОН ГЕЦ ЕООД                  | 117048851     | гр. Русе, ул. "Борисова", 21   |                 |                 |                      | 
+ | 5        | ЕЛДО - ПЛАМЕН ПАВЛОВ ЕТ        | 103094618     | гр. Варна, ул. "Ген.Георги Поп |                 |                 |                      | 
+ | 6        | АТАНАСОВ И КО ООД              | 117096690     | гр. Русе, ул. "Доростол", 28   |                 |                 |                      | 
+ | 7        | МКП БЕЛИЯ ГРАД ООД             | 124713397     | гр. Балчик, ул. "Христо Ботев" |                 |                 |                      | 
+ | 8        | ПК НАРКООП ВЪЗХОД              | 833711        | гр. Добрич, ул. "Д-р К.Стоилов |                 |                 |                      | 
+ | 9        | ЕЛТИ - СЛАВКА ГАЙДАРДЖИЕВА ЕТ  | 124108697     | гр. Балчик, ж.к. "Балик", бл.2 |                 |                 |                      | 
+ | 10       | МОНИ 2003 ООД                  | 124627553     | гр. Добрич, ул. "Гоце Делчев", |                 |                 |                      | 
+
+    contractor = ContractorsCollection(config);
+        config.do
+        config.yy
+        config._import
+        config._export
+        config.skips
+        config.encoding
+
+    contractor.parse();
+    contractor.format()
+
+"""
 class SaldoCollection(object):
     lineSplitChar = "|"
-    lineSplitFieldsRequired = 9
+    lineSplitFieldsRequired = 7
     joinRowMap = {"1":Proxy({
-        "name": "art_name",
+        "name": "contractor_name",
         "cast": str
         })
     }
-    checkFieldIndex = -1
+    checkFieldIndex = 0
     fieldMap = OrderedDict({
         "0":Proxy({
             "name": "MP_id",
             "cast": str
         }), "1":Proxy({
-            "name": "art_name",
+            "name": "name",
+            "cast": str
+        }), "1":Proxy({
+            "name": "UIN",
             "cast": str
         }), "2":Proxy({
-            "name": "qty",
+            "name": "address",
             "cast": float
         }), "6":Proxy({
             "name": "price_bought_total",
